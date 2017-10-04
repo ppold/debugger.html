@@ -7,7 +7,7 @@ import { connect } from "react-redux";
 import { createSelector } from "reselect";
 
 import { get } from "lodash";
-import type { Frame } from "debugger-html";
+import type { Frame, Pause } from "debugger-html";
 import type { SourcesMap } from "../../../reducers/sources";
 
 import FrameComponent from "./Frame";
@@ -38,6 +38,16 @@ import "./Frames.css";
 
 const NUM_FRAMES_SHOWN = 7;
 
+export type Props = {
+  frames?: Array<any>,
+  frameworkGroupingOn: boolean,
+  toggleFrameworkGrouping: Function,
+  selectedFrame?: Object,
+  selectFrame: Function,
+  toggleBlackBox?: Function,
+  pause?: Pause
+};
+
 class Frames extends Component {
   state: {
     showAllFrames: boolean
@@ -61,6 +71,8 @@ class Frames extends Component {
     this.copyStackTrace = this.copyStackTrace.bind(this);
     this.toggleFrameworkGrouping = this.toggleFrameworkGrouping.bind(this);
   }
+
+  props: Props;
 
   shouldComponentUpdate(nextProps, nextState) {
     const { frames, selectedFrame, frameworkGroupingOn } = this.props;
@@ -98,6 +110,9 @@ class Frames extends Component {
 
   copyStackTrace() {
     const { frames } = this.props;
+    if (!frames) {
+      return;
+    }
     const framesToCopy = frames.map(f => formatCopyName(f)).join("\n");
     copyToTheClipboard(framesToCopy);
   }
@@ -169,6 +184,9 @@ class Frames extends Component {
 
   render() {
     const { frames, pause } = this.props;
+    if (!pause) {
+      return;
+    }
 
     if (!frames) {
       return (
@@ -189,16 +207,6 @@ class Frames extends Component {
     );
   }
 }
-
-Frames.propTypes = {
-  frames: PropTypes.array,
-  frameworkGroupingOn: PropTypes.bool.isRequired,
-  toggleFrameworkGrouping: PropTypes.func.isRequired,
-  selectedFrame: PropTypes.object,
-  selectFrame: PropTypes.func.isRequired,
-  toggleBlackBox: PropTypes.func,
-  pause: PropTypes.object
-};
 
 function getSourceForFrame(sources, frame) {
   return getSourceInSources(sources, frame.location.sourceId);
